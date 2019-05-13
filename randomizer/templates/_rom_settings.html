@@ -1,0 +1,33 @@
+{% if debug_enabled %}
+    <div class="panel panel-info panel-collapse collapse" id="rom-settings">
+        <div class="panel-heading">
+            <h4 class="panel-title">ROM Settings</h4>
+        </div>
+        <div class="panel-body">
+            {% if debug_enabled %}
+                <div class="row">
+                    <div class="col-md-6 pb-5">
+                        <input id="debug-mode" type="checkbox" value="true" data-toggle="toggle" data-on="Yes"
+                               data-off="No" data-size="small">
+                        <label for="debug-mode">Debug Mode (Max starting stats for testing)</label>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="clearfix"></div>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            // Debug mode flag
+            $("#debug-mode").change(function () {
+                localforage.setItem("rom.debug_mode", $(this).prop("checked"));
+                $("#form_debug_mode").val($(this).prop("checked"));
+            }).change();
+            localforage.getItem("rom.debug_mode").then(function (value) {
+                if (value === null) return;
+                $("#debug-mode").prop("checked", value).change();
+            });
+        });
+    </script>
+{% endif %}

@@ -1,0 +1,117 @@
+{% load static %}
+
+<div class="alert alert-danger alert-dismissible" role="alert" style="display:none">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+    <span class="message">Cannot Read ROM file.</span>
+</div>
+
+<div id="rom-select" class="panel panel-info" style="display:none">
+    <div class="panel-heading">
+        <h4 class="panel-title">Getting Started</h4>
+    </div>
+    <div class="panel-body">
+        <p>
+            <label class="btn btn-default btn-file">
+                Select ROM File <input type="file" accept=".nes,.sfc,.smc" name="rom-file" id="rom-file"
+                                       style="display: none;">
+            </label>
+        </p>
+        <p>Getting started is simple!</p>
+        <ol>
+            <li>Select your ROM file and load it into the browser. Currently, only US ROMs "Legend of Zelda, The (U) (PRG0)" and "Legend of Zelda, The (U) (PRG1)" are supported.
+            </li>
+            <li>Select the options for how you would like your game randomized.</li>
+            <li>Click Generate.</li>
+            <li>Then save your ROM and head off to Hyrule to save the kidnapped.
+            </li>
+        </ol>
+        <p>You can check out the Help section of this site for more information on all the different ways you can
+            randomize the game.</p>
+    </div>
+</div>
+
+<div id="currently-loaded" class="panel panel-info" style="display:none">
+    <div class="panel-heading">
+        <h4 class="panel-title">Currently Loaded ROM</h4>
+    </div>
+    <div class="panel-body">
+        <p>ROM successfully loaded</p>
+        <p>
+            <label class="btn btn-default">
+                Change ROM <input type="button" name="clear-rom" id="clear-rom" style="display: none;">
+            </label>
+        </p>
+    </div>
+</div>
+
+<script>
+    var rom;
+
+    function resetRom() {
+        return new Promise(function (resolve) {
+            localforage.getItem("rom").then(function (blob) {
+                rom = new ROM(new Blob([blob]), resolve);
+            });
+        });
+    }
+
+    function romOk(rom) {
+        $(".generate-btn").html("Generate ROM").prop("disabled", false);
+        $("#seed-generate").show();
+    }
+
+    function clearRom() {
+        localforage.removeItem("rom");
+        rom = new ROM(new Blob([]));
+        $(".alert, .info").hide();
+        $(".generate-btn").prop("disabled", true);
+        $("#currently-loaded").hide();
+        $("#seed-generate").hide();
+        $("#rom-select").show();
+    }
+
+    function loadRom(blob, show_error) {
+        rom = new ROM(blob, function (rom) {
+            if (show_error) {
+                localforage.setItem("rom", rom.getArrayBuffer());
+            }
+            if (rom.valid) {
+                romOk(rom);
+            } else {
+              $(".alert .message").html("Warning: This ROM doesn't appear to be the right size.  If you know what you're doing, you can ignore this message.");
+              $(".alert").show();
+              romOk(rom);
+            }
+        });
+    }
+
+
+
+    // Page load
+    $(function () {
+        $(".alert, .info").hide();
+
+        // Load ROM file when changed.
+        $("#rom-file").on("change", function () {
+            $("#rom-select").hide();
+            $(".alert").hide();
+            loadRom(this.files[0], true);
+        });
+
+        // Load ROM from local storage if it's there
+        localforage.getItem("rom").then(function (blob) {
+            if (blob != null) {
+              loadRom(new Blob([blob]));
+            } else {
+              $("#rom-select").show();
+            }
+        });
+
+        // Clear rom when clicked.
+        $("#clear-rom").click(clearRom);
+    });
+</script>

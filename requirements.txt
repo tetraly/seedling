@@ -1,0 +1,2 @@
+absl-py
+django>=2.1.6
