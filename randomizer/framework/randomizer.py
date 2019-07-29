@@ -23,7 +23,7 @@ class Randomizer(CustomizedRandomizer):
     self.seed = seed
     self.settings = Settings()
 
-  def Run(self) -> None:
+  def OtherRun(self) -> None:
     (input_path, input_full_filename) = os.path.split(self.input_filename)
     (input_filename, input_extension) = os.path.splitext(input_full_filename)
     output_filename = os.path.join(
@@ -32,10 +32,10 @@ class Randomizer(CustomizedRandomizer):
     output_rom = Rom(output_filename, src=self.input_filename)
     output_rom.OpenFile(write_mode=True)
 
+  def Run(self) -> None:
     patch = self.GetPatch()
     for address in patch.GetAddresses():
       data: List[int]
       data = patch.GetData(address)
       output_rom.WriteBytes(address, data)
     print("Patch written!")
-
